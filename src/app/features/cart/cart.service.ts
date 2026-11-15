@@ -63,6 +63,10 @@ export class CartService {
       .pipe(tap((cart) => this.current.set(cart)));
   }
 
+  clear(): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/cart`).pipe(tap(() => this.markEmpty()));
+  }
+
   // Checkout empties the cart on the server; this mirrors it without another request.
   markEmpty(): void {
     this.current.update((cart) => (cart ? { ...cart, items: [], totalPrice: 0 } : cart));
