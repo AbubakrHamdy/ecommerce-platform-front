@@ -36,6 +36,11 @@ export class ProductPage {
     stream: ({ params }) => this.catalog.product(params),
   });
 
+  // value() throws while the resource is in an error state (a 404), so everything reads this instead.
+  protected readonly current = computed(() =>
+    this.product.hasValue() ? this.product.value() : undefined,
+  );
+
   protected readonly notFound = computed(() => {
     const error = this.product.error();
     return error instanceof HttpErrorResponse && error.status === 404;
@@ -46,7 +51,7 @@ export class ProductPage {
 
   // Primary image first, then in the admin's order.
   protected readonly images = computed(() =>
-    [...(this.product.value()?.images ?? [])].sort(
+    [...(this.current()?.images ?? [])].sort(
       (a, b) => Number(b.isPrimary) - Number(a.isPrimary) || a.displayOrder - b.displayOrder,
     ),
   );
@@ -54,13 +59,13 @@ export class ProductPage {
   protected readonly failedImages = signal<ReadonlySet<string>>(new Set());
 
   protected readonly maxQuantity = computed(() =>
-    Math.min(this.product.value()?.stock ?? 0, MAX_PER_LINE),
+    Math.min(this.current()?.stock ?? 0, MAX_PER_LINE),
   );
   protected readonly quantity = linkedSignal<number>(() => (this.maxQuantity() > 0 ? 1 : 0));
   protected readonly adding = signal(false);
 
   protected readonly related = rxResource({
-    params: () => this.product.value(),
+    params: () => this.current(),
     stream: ({ params }) =>
       this.catalog
         .products({ categoryId: params.category.id, size: 5 })
@@ -69,7 +74,7 @@ export class ProductPage {
 
   constructor() {
     effect(() => {
-      const product = this.product.value();
+      const product = this.current();
       this.title.setTitle(product ? `${product.name} · ${STORE_NAME}` : STORE_NAME);
     });
   }
@@ -83,7 +88,7 @@ export class ProductPage {
   }
 
   protected addToCart(): void {
-    const product = this.product.value();
+    const product = this.current();
     if (!product) {
       return;
     }

@@ -12,7 +12,7 @@
       <p>{{ message }}</p>
       <button type="button" class="btn btn-secondary" (click)="product.reload()">Try again</button>
     </div>
-  } @else if (product.value(); as p) {
+  } @else if (current(); as p) {
     <nav class="flex flex-wrap items-center gap-1.5 text-sm text-muted" aria-label="Breadcrumb">
       <a routerLink="/" class="hover:text-ink">Home</a>
       <app-icon name="chevron-right" size="size-3.5" />
@@ -147,7 +147,7 @@
       </div>
     </div>
 
-    @if (related.value()?.length) {
+    @if (related.hasValue() && related.value().length) {
       <section class="mt-16">
         <h2 class="text-xl font-bold tracking-tight">More in {{ p.category.name }}</h2>
         <div class="mt-5 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
