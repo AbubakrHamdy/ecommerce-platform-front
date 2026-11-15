@@ -38,7 +38,7 @@
               >
               Shipping address
             </h2>
-            @if (!addingAddress() && addresses.value()?.length) {
+            @if (!addingAddress() && addressList()?.length) {
               <button type="button" class="btn-link text-sm" (click)="addingAddress.set(true)">
                 + Add a new address
               </button>
@@ -46,7 +46,7 @@
           </div>
 
           <div class="mt-5">
-            @if (addresses.isLoading() && !addresses.value()) {
+            @if (addresses.isLoading() && !addressList()) {
               <div class="h-24 animate-pulse rounded-xl bg-slate-100"></div>
             } @else if (addresses.error()) {
               <p class="text-sm text-red-700">
@@ -58,14 +58,14 @@
             } @else if (addingAddress()) {
               <app-address-form
                 submitLabel="Save and use this address"
-                [cancellable]="!!addresses.value()?.length"
+                [cancellable]="!!addressList()?.length"
                 (saved)="addressAdded($event)"
                 (cancelled)="addingAddress.set(false)"
               />
             } @else {
               <fieldset class="grid gap-3 sm:grid-cols-2">
                 <legend class="sr-only">Choose a shipping address</legend>
-                @for (address of addresses.value(); track address.id) {
+                @for (address of addressList(); track address.id) {
                   <label
                     class="flex cursor-pointer gap-3 rounded-xl border p-4 transition"
                     [class.border-brand-600]="selectedAddressId() === address.id"

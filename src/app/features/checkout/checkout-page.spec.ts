@@ -68,14 +68,12 @@ describe('CheckoutPage', () => {
 
     const store = TestBed.inject(StoreSettingsService);
     const settingsLoaded = store.load();
-    backend
-      .expectOne('/api/v1/store')
-      .flush({
-        country: 'EG',
-        currency: 'EGP',
-        timeZone: 'Africa/Cairo',
-        paymentProviders: ['STRIPE', 'PAYMOB'],
-      });
+    backend.expectOne('/api/v1/store').flush({
+      country: 'EG',
+      currency: 'EGP',
+      timeZone: 'Africa/Cairo',
+      paymentProviders: ['STRIPE', 'PAYMOB'],
+    });
     await settingsLoaded;
 
     const fixture = TestBed.createComponent(CheckoutPage);

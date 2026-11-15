@@ -33,16 +33,20 @@ export class CheckoutPage {
   protected readonly cart = this.cartService.cart;
   protected readonly cartLoading = signal(true);
   protected readonly addresses = rxResource({ stream: () => this.addressService.list() });
+  // value() throws while the resource is in an error state, so the page reads this instead.
+  protected readonly addressList = computed(() =>
+    this.addresses.hasValue() ? this.addresses.value() : undefined,
+  );
 
   // The address just added is preselected, otherwise the default one.
   private readonly justAdded = signal<number | null>(null);
   protected readonly selectedAddressId = linkedSignal<number | null>(() => {
-    const list = this.addresses.value() ?? [];
+    const list = this.addressList() ?? [];
     const preferred =
       list.find((a) => a.id === this.justAdded()) ?? list.find((a) => a.isDefault) ?? list[0];
     return preferred?.id ?? null;
   });
-  protected readonly addingAddress = linkedSignal(() => this.addresses.value()?.length === 0);
+  protected readonly addingAddress = linkedSignal(() => this.addressList()?.length === 0);
 
   protected readonly providers = this.store.paymentProviders;
   protected readonly provider = linkedSignal<PaymentProvider | null>(
