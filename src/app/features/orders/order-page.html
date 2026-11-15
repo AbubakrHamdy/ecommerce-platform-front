@@ -1,0 +1,288 @@
+<div class="page max-w-5xl">
+  <a routerLink="/orders" class="btn-link inline-flex items-center gap-1.5 text-sm">
+    <app-icon name="arrow-left" size="size-4" /> My orders
+  </a>
+
+  @if (notFound()) {
+    <div class="flex flex-col items-center py-20 text-center">
+      <app-icon name="receipt" size="size-10" class="text-muted/60" />
+      <h1 class="page-title mt-4">Order not found</h1>
+      <p class="mt-2 text-muted">It doesn't exist, or it belongs to another account.</p>
+      <a routerLink="/orders" class="btn btn-primary mt-8">See my orders</a>
+    </div>
+  } @else if (errorMessage() && !current()) {
+    <div class="card mt-6 flex flex-col items-center gap-3 p-10 text-center">
+      <app-icon name="alert" size="size-8" class="text-red-500" />
+      <p>{{ errorMessage() }}</p>
+      <button type="button" class="btn btn-secondary" (click)="order.reload()">Try again</button>
+    </div>
+  } @else if (current(); as o) {
+    <div class="mt-3 flex flex-wrap items-center gap-3">
+      <h1 class="page-title">Order #{{ o.id }}</h1>
+      <app-order-status-badge [status]="o.status" />
+    </div>
+    <p class="mt-1 text-sm text-muted">Placed on {{ o.createdAt | date: 'medium' }}</p>
+
+    <!-- Back from the payment page -->
+    @if (payment() === 'success' && o.status === 'PENDING') {
+      @if (confirming()) {
+        <div
+          class="mt-6 flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-sky-900"
+          role="status"
+        >
+          <span
+            class="mt-0.5 size-4 shrink-0 animate-spin rounded-full border-2 border-sky-300 border-t-sky-700"
+          ></span>
+          <p class="text-sm">
+            <span class="font-semibold">Confirming your payment…</span> This usually takes a few
+            seconds.
+          </p>
+        </div>
+      } @else {
+        <div
+          class="mt-6 flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-amber-900"
+          role="status"
+        >
+          <app-icon name="info" size="size-5" />
+          <p class="flex-1 text-sm">
+            We haven't received the payment confirmation yet. If you paid, it will show here shortly
+            and we'll email you a receipt.
+          </p>
+          <button type="button" class="btn btn-secondary py-1.5" (click)="refresh()">
+            Refresh
+          </button>
+        </div>
+      }
+    } @else if (payment() === 'success' && progress() >= 1) {
+      <div
+        class="mt-6 flex items-start gap-3 rounded-xl bg-brand-50 p-4 text-brand-900"
+        role="status"
+      >
+        <app-icon name="check" size="size-5" />
+        <p class="text-sm">
+          <span class="font-semibold">Payment received. Thank you!</span> A receipt is on its way to
+          {{ o.customerEmail }}.
+        </p>
+      </div>
+    } @else if (payment() === 'cancelled' && o.status === 'PENDING') {
+      <div
+        class="mt-6 flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-amber-900"
+        role="status"
+      >
+        <app-icon name="info" size="size-5" />
+        <p class="text-sm">
+          The payment wasn't completed. Your items are still reserved, so you can try again below.
+        </p>
+      </div>
+    }
+
+    <!-- Progress -->
+    @if (o.status === 'CANCELLED') {
+      <div class="card mt-6 flex items-start gap-3 p-5">
+        <app-icon name="x" class="text-slate-500" />
+        <div>
+          <p class="font-semibold">This order was cancelled</p>
+          <p class="text-sm text-muted">
+            The items were released. If you had already paid, the payment will be refunded.
+          </p>
+        </div>
+      </div>
+    } @else {
+      <ol class="card mt-6 grid grid-cols-5 gap-2 p-5" aria-label="Order progress">
+        @for (step of steps; track step.status) {
+          <li class="flex flex-col items-center gap-2 text-center">
+            <span
+              class="flex size-8 items-center justify-center rounded-full text-sm font-semibold"
+              [class.bg-brand-700]="$index <= progress()"
+              [class.text-white]="$index <= progress()"
+              [class.bg-slate-100]="$index > progress()"
+              [class.text-muted]="$index > progress()"
+              [attr.aria-current]="$index === progress() ? 'step' : null"
+            >
+              @if ($index < progress()) {
+                <app-icon name="check" size="size-4" />
+              } @else {
+                {{ $index + 1 }}
+              }
+            </span>
+            <span
+              class="text-xs sm:text-sm"
+              [class.font-semibold]="$index === progress()"
+              [class.text-muted]="$index > progress()"
+              >{{ step.label }}</span
+            >
+          </li>
+        }
+      </ol>
+    }
+
+    <div class="mt-6 grid items-start gap-6 lg:grid-cols-3">
+      <div class="space-y-6 lg:col-span-2">
+        <!-- Pay or cancel a pending order -->
+        @if (isAwaitingPayment(o) && !confirming()) {
+          <section class="card p-6" aria-labelledby="pay-heading">
+            <h2 id="pay-heading" class="text-lg font-semibold">Complete your payment</h2>
+            <p class="mt-1 text-sm text-muted">
+              Unpaid orders are cancelled automatically after a short time, and the items go back on
+              sale.
+            </p>
+            @if (providers().length === 0) {
+              <p class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+                Online payment isn't available right now. Please try again later.
+              </p>
+            } @else {
+              <div class="mt-4">
+                <app-payment-method-picker
+                  name="order-payment-provider"
+                  [providers]="providers()"
+                  [(selected)]="provider"
+                />
+              </div>
+              <button
+                type="button"
+                class="btn btn-primary mt-4 w-full py-3 sm:w-auto sm:px-8"
+                [disabled]="paying() || !provider()"
+                (click)="pay(o)"
+              >
+                <app-icon name="credit-card" size="size-4" />
+                {{
+                  paying()
+                    ? 'Opening the payment page…'
+                    : 'Pay ' + (o.totalAmount | money: o.currency)
+                }}
+              </button>
+            }
+
+            <div class="mt-6 border-t border-line pt-4">
+              @if (confirmingCancel()) {
+                <p class="text-sm font-medium">Cancel this order? The items will be released.</p>
+                <div class="mt-3 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    class="btn btn-danger"
+                    [disabled]="cancelling()"
+                    (click)="cancel(o)"
+                  >
+                    {{ cancelling() ? 'Cancelling…' : 'Yes, cancel order' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    [disabled]="cancelling()"
+                    (click)="confirmingCancel.set(false)"
+                  >
+                    Keep my order
+                  </button>
+                </div>
+              } @else {
+                <button
+                  type="button"
+                  class="text-sm font-medium text-muted hover:text-red-700"
+                  (click)="confirmingCancel.set(true)"
+                >
+                  Cancel order
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Items -->
+        <section class="card" aria-labelledby="items-heading">
+          <h2 id="items-heading" class="border-b border-line px-6 py-4 text-lg font-semibold">
+            Items
+          </h2>
+          <ul class="divide-y divide-line">
+            @for (item of o.items; track item.id) {
+              <li class="flex items-center gap-4 px-6 py-4">
+                <a
+                  [routerLink]="['/products', item.productId]"
+                  class="size-16 shrink-0 overflow-hidden rounded-xl bg-surface"
+                >
+                  @if (item.productImageUrl && !failedImages().has(item.id)) {
+                    <img
+                      [src]="item.productImageUrl"
+                      [alt]="item.productName"
+                      width="64"
+                      height="64"
+                      class="size-full object-cover"
+                      (error)="imageFailed(item.id)"
+                    />
+                  } @else {
+                    <span class="flex size-full items-center justify-center text-muted/50">
+                      <app-icon name="image" size="size-6" />
+                    </span>
+                  }
+                </a>
+                <div class="min-w-0 flex-1">
+                  <a
+                    [routerLink]="['/products', item.productId]"
+                    class="line-clamp-2 font-medium hover:text-brand-700"
+                    >{{ item.productName }}</a
+                  >
+                  <p class="text-sm text-muted">
+                    {{ item.quantity }} × {{ item.priceAtPurchase | money: o.currency }}
+                  </p>
+                </div>
+                <p class="font-semibold">{{ item.subtotal | money: o.currency }}</p>
+              </li>
+            }
+          </ul>
+          <div class="flex justify-between border-t border-line px-6 py-4 text-base font-semibold">
+            <span>Total</span>
+            <span>{{ o.totalAmount | money: o.currency }}</span>
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-6">
+        <section class="card p-6" aria-labelledby="ship-heading">
+          <h2 id="ship-heading" class="flex items-center gap-2 font-semibold">
+            <app-icon name="truck" size="size-5" class="text-brand-700" /> Shipping to
+          </h2>
+          <address class="mt-3 text-sm text-muted not-italic">
+            @for (line of addressLines(o.shippingAddress); track $index) {
+              <span class="block">{{ line }}</span>
+            }
+          </address>
+        </section>
+
+        @if (payments.hasValue() && payments.value().length) {
+          <section class="card p-6" aria-labelledby="payments-heading">
+            <h2 id="payments-heading" class="flex items-center gap-2 font-semibold">
+              <app-icon name="credit-card" size="size-5" class="text-brand-700" /> Payments
+            </h2>
+            <ul class="mt-3 space-y-3 text-sm">
+              @for (p of payments.value(); track p.id) {
+                <li class="flex items-start justify-between gap-3">
+                  <span>
+                    <span class="block font-medium">{{
+                      p.provider === 'STRIPE' ? 'Stripe' : 'Paymob'
+                    }}</span>
+                    <span class="block text-xs text-muted">{{ p.createdAt | date: 'medium' }}</span>
+                  </span>
+                  <span
+                    class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                    [class.bg-brand-50]="p.status === 'SUCCEEDED'"
+                    [class.text-brand-800]="p.status === 'SUCCEEDED'"
+                    [class.bg-amber-50]="p.status === 'PENDING'"
+                    [class.text-amber-800]="p.status === 'PENDING'"
+                    [class.bg-slate-100]="p.status === 'FAILED' || p.status === 'EXPIRED'"
+                    [class.text-slate-700]="p.status === 'FAILED' || p.status === 'EXPIRED'"
+                    >{{ paymentLabels[p.status] }}</span
+                  >
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </aside>
+    </div>
+  } @else {
+    <div class="mt-6 animate-pulse space-y-6">
+      <div class="h-9 w-56 rounded bg-slate-100"></div>
+      <div class="card h-24 bg-slate-100"></div>
+      <div class="card h-64 bg-slate-100"></div>
+    </div>
+  }
+</div>

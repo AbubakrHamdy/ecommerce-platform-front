@@ -34,7 +34,7 @@ export class OrderService {
     return this.http.post<PaymentSession>(`${this.url}/${orderId}/payments`, { provider });
   }
 
-  payments(orderId: number): Observable<Payment[]> {
+  payments(orderId: number | string): Observable<Payment[]> {
     return this.http.get<Payment[]>(`${this.url}/${orderId}/payments`);
   }
 }
