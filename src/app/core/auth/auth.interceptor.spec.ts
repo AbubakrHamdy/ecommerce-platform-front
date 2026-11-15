@@ -92,14 +92,12 @@ describe('authInterceptor', () => {
     backend.expectOne('/api/v1/cart').flush(null, { status: 401, statusText: 'Unauthorized' });
     backend.expectOne('/api/v1/orders').flush(null, { status: 401, statusText: 'Unauthorized' });
 
-    backend
-      .expectOne('/api/v1/auth/refresh')
-      .flush({
-        accessToken: 'access-2',
-        refreshToken: 'refresh-2',
-        tokenType: 'Bearer',
-        expiresIn: 900,
-      });
+    backend.expectOne('/api/v1/auth/refresh').flush({
+      accessToken: 'access-2',
+      refreshToken: 'refresh-2',
+      tokenType: 'Bearer',
+      expiresIn: 900,
+    });
     await settle();
     backend.expectOne('/api/v1/cart').flush({});
     backend.expectOne('/api/v1/orders').flush({});

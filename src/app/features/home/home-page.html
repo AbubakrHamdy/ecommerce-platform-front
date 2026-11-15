@@ -1,0 +1,87 @@
+<section class="relative overflow-hidden bg-brand-900 text-white">
+  <div
+    class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(45,212,191,0.35),transparent_45%),radial-gradient(circle_at_10%_90%,rgba(20,184,166,0.25),transparent_40%)]"
+  ></div>
+  <div class="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
+    <p class="text-sm font-semibold tracking-widest text-brand-200 uppercase">{{ storeName }}</p>
+    <h1 class="mt-4 max-w-2xl text-4xl font-bold tracking-tight sm:text-6xl">
+      Everything you need, delivered to your door.
+    </h1>
+    <p class="mt-6 max-w-xl text-lg text-brand-100/90">
+      Laptops, accessories and everyday clothing, with secure card payments and order tracking by
+      email.
+    </p>
+    <div class="mt-10 flex flex-wrap gap-3">
+      <a routerLink="/products" class="btn bg-white px-6 py-3 text-brand-900 hover:bg-brand-50">
+        Shop all products
+        <app-icon name="arrow-right" size="size-4" />
+      </a>
+      <a
+        routerLink="/products"
+        [queryParams]="{ sort: 'price,asc' }"
+        class="btn border border-white/30 px-6 py-3 text-white hover:bg-white/10"
+      >
+        Lowest prices first
+      </a>
+    </div>
+  </div>
+</section>
+
+@if (topCategories().length) {
+  <section class="page pb-0">
+    <h2 class="text-xl font-bold tracking-tight">Shop by category</h2>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      @for (category of topCategories(); track category.id) {
+        <a
+          routerLink="/products"
+          [queryParams]="{ categoryId: category.id }"
+          class="group card flex items-center justify-between p-6 transition hover:border-brand-200 hover:bg-brand-50"
+        >
+          <span class="font-semibold text-ink">{{ category.name }}</span>
+          <app-icon
+            name="arrow-right"
+            class="text-muted transition group-hover:translate-x-1 group-hover:text-brand-700"
+          />
+        </a>
+      }
+    </div>
+  </section>
+}
+
+<section class="page">
+  <div class="flex items-end justify-between">
+    <h2 class="text-xl font-bold tracking-tight">New arrivals</h2>
+    <a routerLink="/products" class="btn-link text-sm">View all</a>
+  </div>
+  <div class="mt-5 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
+    @if (newArrivals.hasValue()) {
+      @for (product of newArrivals.value().content; track product.id) {
+        <app-product-card [product]="product" />
+      }
+    } @else if (newArrivals.isLoading()) {
+      @for (_ of [1, 2, 3, 4]; track $index) {
+        <div class="card aspect-[3/4] animate-pulse bg-slate-100"></div>
+      }
+    } @else {
+      <p class="col-span-full text-muted">Products can't be loaded right now.</p>
+    }
+  </div>
+</section>
+
+<section class="page pt-0">
+  <div class="grid gap-4 md:grid-cols-3">
+    @for (item of highlights; track item.title) {
+      <div class="card flex gap-4 p-6">
+        <span
+          class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700"
+        >
+          <app-icon [name]="item.icon" />
+        </span>
+        <div>
+          <h3 class="font-semibold text-ink">{{ item.title }}</h3>
+          <p class="mt-1 text-sm text-muted">{{ item.text }}</p>
+        </div>
+      </div>
+    }
+  </div>
+</section>

@@ -1,0 +1,126 @@
+<header class="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur">
+  <div class="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+    <button
+      type="button"
+      class="-ml-2 rounded-lg p-2 text-ink hover:bg-surface md:hidden"
+      (click)="mobileMenuOpen.set(!mobileMenuOpen())"
+      [attr.aria-expanded]="mobileMenuOpen()"
+      aria-label="Menu"
+    >
+      <app-icon [name]="mobileMenuOpen() ? 'x' : 'menu'" />
+    </button>
+
+    <a routerLink="/" class="flex items-center gap-2 text-lg font-bold tracking-tight text-ink">
+      <span class="flex size-8 items-center justify-center rounded-lg bg-brand-700 text-white">
+        <app-icon name="package" size="size-5" />
+      </span>
+      <span class="hidden sm:inline">{{ storeName }}</span>
+    </a>
+
+    <nav class="ml-4 hidden items-center gap-1 md:flex">
+      <a
+        routerLink="/products"
+        routerLinkActive="text-brand-700 bg-brand-50"
+        class="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-ink"
+        >Shop</a
+      >
+    </nav>
+
+    <form class="ml-auto hidden max-w-sm flex-1 md:block" role="search" (submit)="search()">
+      <label class="relative block">
+        <span class="sr-only">Search products</span>
+        <app-icon
+          name="search"
+          size="size-4"
+          class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted"
+        />
+        <input
+          type="search"
+          name="search"
+          class="field-input pl-9"
+          placeholder="Search products"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </label>
+    </form>
+
+    <div class="ml-auto flex items-center gap-1 md:ml-0">
+      <a
+        routerLink="/cart"
+        class="relative rounded-lg p-2 text-ink hover:bg-surface"
+        aria-label="Cart"
+      >
+        <app-icon name="cart" size="size-6" />
+      </a>
+
+      @if (auth.user(); as user) {
+        <div class="relative">
+          <button
+            type="button"
+            class="flex items-center gap-2 rounded-lg p-2 text-sm font-medium text-ink hover:bg-surface"
+            (click)="accountMenuOpen.set(!accountMenuOpen())"
+            [attr.aria-expanded]="accountMenuOpen()"
+            aria-haspopup="menu"
+          >
+            <span
+              class="flex size-8 items-center justify-center rounded-full bg-brand-100 font-semibold text-brand-800"
+              >{{ user.firstName.charAt(0) }}</span
+            >
+            <span class="hidden lg:inline">{{ user.firstName }}</span>
+            <app-icon name="chevron-down" size="size-4" class="hidden text-muted lg:inline-flex" />
+          </button>
+          @if (accountMenuOpen()) {
+            <div
+              role="menu"
+              class="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-line bg-white py-1 shadow-xl shadow-slate-200/60"
+            >
+              <div class="border-b border-line px-4 py-3">
+                <p class="text-sm font-semibold text-ink">
+                  {{ user.firstName }} {{ user.lastName }}
+                </p>
+                <p class="truncate text-xs text-muted">{{ user.email }}</p>
+              </div>
+              <a role="menuitem" routerLink="/orders" class="menu-item">
+                <app-icon name="receipt" size="size-4" /> My orders
+              </a>
+              <a role="menuitem" routerLink="/account" class="menu-item">
+                <app-icon name="user" size="size-4" /> Account
+              </a>
+              <a role="menuitem" routerLink="/account/addresses" class="menu-item">
+                <app-icon name="map-pin" size="size-4" /> Addresses
+              </a>
+              <button type="button" role="menuitem" class="menu-item w-full" (click)="logout()">
+                <app-icon name="logout" size="size-4" /> Log out
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <a routerLink="/login" class="btn btn-secondary hidden sm:inline-flex">Log in</a>
+        <a routerLink="/register" class="btn btn-primary">Sign up</a>
+      }
+    </div>
+  </div>
+
+  @if (mobileMenuOpen()) {
+    <div class="border-t border-line bg-white px-4 py-4 md:hidden">
+      <form role="search" (submit)="search()">
+        <input
+          type="search"
+          name="mobileSearch"
+          class="field-input"
+          placeholder="Search products"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </form>
+      <nav class="mt-3 flex flex-col">
+        <a routerLink="/products" class="menu-item rounded-lg">Shop</a>
+        @if (!auth.isLoggedIn()) {
+          <a routerLink="/login" class="menu-item rounded-lg">Log in</a>
+        }
+      </nav>
+    </div>
+  }
+</header>
