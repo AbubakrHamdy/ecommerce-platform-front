@@ -11,6 +11,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/catalog/catalog-page').then((m) => m.CatalogPage),
   },
   {
+    path: 'products/:id',
+    loadComponent: () => import('./features/catalog/product-page').then((m) => m.ProductPage),
+  },
+  {
     path: '**',
     title: 'Page not found',
     loadComponent: () => import('./features/not-found/not-found-page').then((m) => m.NotFoundPage),

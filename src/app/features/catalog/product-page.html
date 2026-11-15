@@ -1,0 +1,171 @@
+<div class="page">
+  @if (notFound()) {
+    <div class="flex flex-col items-center py-20 text-center">
+      <app-icon name="search" size="size-10" class="text-muted/60" />
+      <h1 class="page-title mt-4">Product not found</h1>
+      <p class="mt-2 text-muted">It may have been removed from the shop.</p>
+      <a routerLink="/products" class="btn btn-primary mt-8">Browse products</a>
+    </div>
+  } @else if (errorMessage(); as message) {
+    <div class="card flex flex-col items-center gap-3 p-10 text-center">
+      <app-icon name="alert" size="size-8" class="text-red-500" />
+      <p>{{ message }}</p>
+      <button type="button" class="btn btn-secondary" (click)="product.reload()">Try again</button>
+    </div>
+  } @else if (product.value(); as p) {
+    <nav class="flex flex-wrap items-center gap-1.5 text-sm text-muted" aria-label="Breadcrumb">
+      <a routerLink="/" class="hover:text-ink">Home</a>
+      <app-icon name="chevron-right" size="size-3.5" />
+      <a routerLink="/products" class="hover:text-ink">Shop</a>
+      <app-icon name="chevron-right" size="size-3.5" />
+      <a
+        routerLink="/products"
+        [queryParams]="{ categoryId: p.category.id }"
+        class="hover:text-ink"
+        >{{ p.category.name }}</a
+      >
+      <app-icon name="chevron-right" size="size-3.5" />
+      <span class="truncate text-ink">{{ p.name }}</span>
+    </nav>
+
+    <div class="mt-6 grid gap-10 lg:grid-cols-2">
+      <div>
+        <div class="card aspect-square overflow-hidden">
+          @if (selectedImage() && !failedImages().has(selectedImage()!)) {
+            <img
+              [src]="selectedImage()"
+              [alt]="p.name"
+              width="600"
+              height="600"
+              class="size-full object-cover"
+              (error)="imageFailed(selectedImage()!)"
+            />
+          } @else {
+            <div class="flex size-full items-center justify-center bg-surface text-muted/50">
+              <app-icon name="image" size="size-16" />
+            </div>
+          }
+        </div>
+        @if (images().length > 1) {
+          <div class="mt-4 grid grid-cols-5 gap-3">
+            @for (image of images(); track image.id) {
+              <button
+                type="button"
+                class="aspect-square overflow-hidden rounded-xl border-2 bg-surface"
+                [class.border-brand-600]="image.url === selectedImage()"
+                [class.border-transparent]="image.url !== selectedImage()"
+                (click)="selectedImage.set(image.url)"
+                [attr.aria-label]="'Show image ' + ($index + 1)"
+              >
+                @if (!failedImages().has(image.url)) {
+                  <img
+                    [src]="image.url"
+                    alt=""
+                    width="120"
+                    height="120"
+                    class="size-full object-cover"
+                    (error)="imageFailed(image.url)"
+                  />
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="flex flex-col">
+        <a
+          routerLink="/products"
+          [queryParams]="{ categoryId: p.category.id }"
+          class="text-sm font-semibold tracking-wide text-brand-700 uppercase hover:underline"
+          >{{ p.category.name }}</a
+        >
+        <h1 class="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">{{ p.name }}</h1>
+        <p class="mt-4 text-3xl font-semibold text-ink">{{ p.price | money }}</p>
+
+        <div class="mt-4">
+          @if (p.stock === 0) {
+            <span class="inline-flex items-center gap-1.5 text-sm font-medium text-red-700">
+              <span class="size-2 rounded-full bg-red-500"></span> Out of stock
+            </span>
+          } @else if (p.stock <= 5) {
+            <span class="inline-flex items-center gap-1.5 text-sm font-medium text-amber-700">
+              <span class="size-2 rounded-full bg-amber-500"></span> Only {{ p.stock }} left
+            </span>
+          } @else {
+            <span class="inline-flex items-center gap-1.5 text-sm font-medium text-brand-700">
+              <span class="size-2 rounded-full bg-brand-500"></span> In stock
+            </span>
+          }
+        </div>
+
+        @if (p.description) {
+          <p class="mt-6 leading-relaxed whitespace-pre-line text-muted">{{ p.description }}</p>
+        }
+
+        <div class="mt-8 flex flex-wrap items-center gap-3 border-t border-line pt-8">
+          <div class="flex items-center rounded-lg border border-line bg-white">
+            <button
+              type="button"
+              class="p-3 text-muted hover:text-ink disabled:opacity-40"
+              [disabled]="quantity() <= 1"
+              (click)="changeQuantity(-1)"
+              aria-label="Decrease quantity"
+            >
+              <app-icon name="minus" size="size-4" />
+            </button>
+            <span class="w-10 text-center font-semibold" aria-live="polite">{{ quantity() }}</span>
+            <button
+              type="button"
+              class="p-3 text-muted hover:text-ink disabled:opacity-40"
+              [disabled]="quantity() >= maxQuantity()"
+              (click)="changeQuantity(1)"
+              aria-label="Increase quantity"
+            >
+              <app-icon name="plus" size="size-4" />
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary flex-1 py-3 sm:flex-none sm:px-10"
+            [disabled]="p.stock === 0 || adding()"
+            (click)="addToCart()"
+          >
+            <app-icon name="cart" />
+            {{ adding() ? 'Adding…' : p.stock === 0 ? 'Out of stock' : 'Add to cart' }}
+          </button>
+        </div>
+
+        <ul class="mt-8 space-y-3 text-sm text-muted">
+          <li class="flex items-center gap-3">
+            <app-icon name="shield" class="text-brand-700" /> Secure payment on Stripe or Paymob
+          </li>
+          <li class="flex items-center gap-3">
+            <app-icon name="mail" class="text-brand-700" /> Email updates when your order ships
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    @if (related.value()?.length) {
+      <section class="mt-16">
+        <h2 class="text-xl font-bold tracking-tight">More in {{ p.category.name }}</h2>
+        <div class="mt-5 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+          @for (item of related.value(); track item.id) {
+            <app-product-card [product]="item" />
+          }
+        </div>
+      </section>
+    }
+  } @else {
+    <div class="grid animate-pulse gap-10 lg:grid-cols-2">
+      <div class="card aspect-square bg-slate-100"></div>
+      <div class="space-y-4">
+        <div class="h-4 w-24 rounded bg-slate-100"></div>
+        <div class="h-9 w-3/4 rounded bg-slate-100"></div>
+        <div class="h-8 w-32 rounded bg-slate-100"></div>
+        <div class="h-24 rounded bg-slate-100"></div>
+      </div>
+    </div>
+  }
+</div>

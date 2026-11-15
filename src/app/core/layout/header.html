@@ -49,9 +49,15 @@
       <a
         routerLink="/cart"
         class="relative rounded-lg p-2 text-ink hover:bg-surface"
-        aria-label="Cart"
+        [attr.aria-label]="'Cart, ' + cart.itemCount() + ' items'"
       >
         <app-icon name="cart" size="size-6" />
+        @if (cart.itemCount() > 0) {
+          <span
+            class="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-700 px-1 text-[11px] font-bold text-white"
+            >{{ cart.itemCount() > 99 ? '99+' : cart.itemCount() }}</span
+          >
+        }
       </a>
 
       @if (auth.user(); as user) {

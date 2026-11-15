@@ -6,6 +6,7 @@ import { filter } from 'rxjs';
 import { AuthService } from '../auth/auth.service';
 import { STORE_NAME } from '../store/store-settings.service';
 import { Icon } from '../../shared/icon';
+import { CartService } from '../../features/cart/cart.service';
 
 @Component({
   selector: 'app-header',
@@ -15,6 +16,7 @@ import { Icon } from '../../shared/icon';
 })
 export class Header {
   protected readonly auth = inject(AuthService);
+  protected readonly cart = inject(CartService);
   private readonly router = inject(Router);
   private readonly element = inject(ElementRef<HTMLElement>);
 
