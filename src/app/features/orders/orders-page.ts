@@ -42,7 +42,7 @@ import { OrderService } from './order.service';
               <li>
                 <a
                   [routerLink]="['/orders', order.id]"
-                  class="flex flex-wrap items-center gap-x-6 gap-y-2 p-4 hover:bg-surface sm:p-5"
+                  class="flex items-center gap-4 p-4 hover:bg-surface sm:p-5"
                 >
                   <div class="min-w-0 flex-1">
                     <p class="font-semibold text-ink">Order #{{ order.id }}</p>
@@ -51,10 +51,15 @@ import { OrderService } from './order.service';
                       {{ order.itemCount === 1 ? 'item' : 'items' }}
                     </p>
                   </div>
-                  <app-order-status-badge [status]="order.status" />
-                  <p class="w-28 text-right font-semibold">
-                    {{ order.totalAmount | money: order.currency }}
-                  </p>
+                  <!-- Stacked on phones; side by side, status first, from the sm breakpoint. -->
+                  <div
+                    class="flex flex-col items-end gap-1.5 sm:flex-row-reverse sm:items-center sm:gap-6"
+                  >
+                    <p class="font-semibold whitespace-nowrap sm:w-28 sm:text-right">
+                      {{ order.totalAmount | money: order.currency }}
+                    </p>
+                    <app-order-status-badge [status]="order.status" />
+                  </div>
                   <app-icon
                     name="chevron-right"
                     size="size-4"

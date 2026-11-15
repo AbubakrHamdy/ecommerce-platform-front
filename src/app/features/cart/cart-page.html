@@ -91,7 +91,9 @@
                 </div>
 
                 <div class="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
-                  <p class="font-semibold text-ink sm:order-last">{{ item.subtotal | money }}</p>
+                  <p class="font-semibold whitespace-nowrap text-ink sm:order-last">
+                    {{ item.subtotal | money }}
+                  </p>
                   <div class="flex items-center gap-2">
                     <div class="flex items-center rounded-lg border border-line bg-white">
                       <button

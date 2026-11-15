@@ -39,8 +39,12 @@
               Shipping address
             </h2>
             @if (!addingAddress() && addressList()?.length) {
-              <button type="button" class="btn-link text-sm" (click)="addingAddress.set(true)">
-                + Add a new address
+              <button
+                type="button"
+                class="btn-link text-sm whitespace-nowrap"
+                (click)="addingAddress.set(true)"
+              >
+                + New address
               </button>
             }
           </div>
