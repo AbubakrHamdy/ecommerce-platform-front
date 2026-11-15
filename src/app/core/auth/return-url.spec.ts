@@ -8,7 +8,8 @@ describe('safeReturnUrl', () => {
   it('ignores other sites and missing values', () => {
     expect(safeReturnUrl('https://evil.example')).toBe('/');
     expect(safeReturnUrl('//evil.example')).toBe('/');
-    expect(safeReturnUrl('/\evil.example')).toBe('/');
+    // Browsers treat "/\host" like "//host".
+    expect(safeReturnUrl('/\\evil.example')).toBe('/');
     expect(safeReturnUrl(undefined)).toBe('/');
   });
 });
